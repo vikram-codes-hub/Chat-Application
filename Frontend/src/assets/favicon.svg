@@ -1,0 +1,19 @@
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background rounded square -->
+  <rect width="32" height="32" rx="8" fill="#7c6eff"/>
+
+  <!-- Inner dark panel (mini message area) -->
+  <rect x="4" y="4" width="24" height="19" rx="4" fill="#11111a"/>
+
+  <!-- Mini message bubbles -->
+  <rect x="6" y="7" width="10" height="4" rx="2" fill="#1a1a28"/>
+  <rect x="6" y="13" width="7" height="4" rx="2" fill="#1a1a28"/>
+  <rect x="16" y="13" width="10" height="4" rx="2" fill="#7c6eff" opacity="0.9"/>
+
+  <!-- Pulse dot accent (top-right) -->
+  <circle cx="25" cy="7" r="2.5" fill="#7c6eff"/>
+  <circle cx="25" cy="7" r="1.2" fill="#ffffff"/>
+
+  <!-- Bubble tail -->
+  <polygon points="7,23 13,23 10,28" fill="#7c6eff"/>
+</svg>
