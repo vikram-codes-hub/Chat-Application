@@ -90,25 +90,30 @@ const Chat = () => {
   // two parallel GET /api/conversations requests on every page load.
   useEffect(() => { fetchConversations(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Wire up socket events
+  // Wire up socket events — use named refs so socket.off only removes THIS effect's handlers
   useEffect(() => {
     if (!socket) return;
-    socket.on("newMessage", receiveMessage);
-    socket.on("typing",     ({ conversationId, userId }) => setTyping(conversationId, userId, true));
-    socket.on("stopTyping", ({ conversationId, userId }) => setTyping(conversationId, userId, false));
+    const onNewMessage  = (msg)                          => receiveMessage(msg);
+    const onTyping      = ({ conversationId, userId })   => setTyping(conversationId, userId, true);
+    const onStopTyping  = ({ conversationId, userId })   => setTyping(conversationId, userId, false);
+    socket.on("newMessage",  onNewMessage);
+    socket.on("typing",      onTyping);
+    socket.on("stopTyping",  onStopTyping);
     return () => {
-      socket.off("newMessage");
-      socket.off("typing");
-      socket.off("stopTyping");
+      socket.off("newMessage",  onNewMessage);
+      socket.off("typing",      onTyping);
+      socket.off("stopTyping",  onStopTyping);
     };
   }, [socket, receiveMessage, setTyping]);
 
-  // Join/leave socket room so room-targeted broadcasts (typing, newMessage) work
+  // Join/leave socket room so room-targeted broadcasts (typing, newMessage) work.
+  // Also depends on `socket`: if socket connects AFTER a conversation is already selected
+  // (race on first load), we re-emit joinConversation so the room membership is established.
   useEffect(() => {
-    if (!activeConversation?._id) return;
+    if (!activeConversation?._id || !socket) return;
     joinConversation?.(activeConversation._id);
     return () => leaveConversation?.(activeConversation._id);
-  }, [activeConversation?._id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeConversation?._id, socket]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg-base)" }}>

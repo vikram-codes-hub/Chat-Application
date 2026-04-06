@@ -84,8 +84,17 @@ export const sendMessage = async (req, res, next) => {
     if (io) {
       const msgObj = message.toObject();
 
-      // Broadcast to everyone already in the conversation socket room
-      io.to(conversationId).emit("newMessage", msgObj);
+      // Find the sender's socket so we can EXCLUDE them from the room broadcast.
+      // The sender already has the message from the HTTP 201 response — sending
+      // it again via socket causes a duplicate bubble on the sender's screen.
+      const senderSocketId = onlineUsers.get(req.user._id.toString());
+
+      // Broadcast to everyone in the conversation room EXCEPT the sender
+      if (senderSocketId) {
+        io.to(conversationId).except(senderSocketId).emit("newMessage", msgObj);
+      } else {
+        io.to(conversationId).emit("newMessage", msgObj);
+      }
 
       // Also deliver directly to online participants NOT already in the room
       const roomSockets = io.sockets.adapter.rooms.get(conversationId) || new Set();

@@ -73,6 +73,7 @@ export const ChatProvider = ({ children }) => {
 
     try {
       const res = await api.post(`/messages/${activeConversation._id}`, { text, image });
+      seenMsgIds.current.add(res.data._id);
       setMessages((prev) => prev.map((m) => (m._id === tempId ? res.data : m)));
     } catch {
       setMessages((prev) =>
@@ -84,13 +85,18 @@ export const ChatProvider = ({ children }) => {
 
   // Socket: receive incoming message
   const receiveMessage = useCallback((msg) => {
-    // Bail out immediately if we've already processed this message ID.
-    // This prevents double-unread-count when the server sends the same
-    // message via both the room broadcast AND a direct socket emit.
+    // Guard 1: seenMsgIds ref — blocks duplicates from double socket emits
+    // (room broadcast + direct emit) and messages the sender already received
+    // via HTTP response.
     if (seenMsgIds.current.has(msg._id)) return;
     seenMsgIds.current.add(msg._id);
 
-    setMessages((prev) => [...prev, msg]);
+    setMessages((prev) => {
+      // Guard 2: if the _id already exists in the list (race: socket beat HTTP
+      // response, REST code replaced tempMsg first), silently skip.
+      if (prev.some((m) => m._id === msg._id)) return prev;
+      return [...prev, msg];
+    });
     setConversations((prev) =>
       prev.map((c) =>
         c._id === msg.conversationId
