@@ -13,23 +13,17 @@ const DateDivider = ({ date }) => (
     padding: "6px 0", userSelect: "none",
   }}>
     <div style={{ flex: 1, height: 1, background: "var(--border-base)" }} />
-    <span style={{ fontSize: 11, color: "var(--text-hint)", whiteSpace: "nowrap", padding: "0 4px" }}>{date}</span>
+    <span style={{ fontSize: 11, color: "var(--text-hint)", whiteSpace: "nowrap" }}>{date}</span>
     <div style={{ flex: 1, height: 1, background: "var(--border-base)" }} />
   </div>
 );
 
 const EmptyChat = () => (
-  <div style={{
-    flex: 1, display: "flex", flexDirection: "column",
-    alignItems: "center", justifyContent: "center", gap: 12,
-  }}>
+  <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12 }}>
     <motion.div
       animate={{ scale: [1, 1.08, 1], opacity: [0.08, 0.14, 0.08] }}
       transition={{ duration: 3, repeat: Infinity }}
-      style={{
-        width: 64, height: 64, borderRadius: 20,
-        background: "var(--accent)",
-      }}
+      style={{ width: 64, height: 64, borderRadius: 20, background: "var(--accent)" }}
     />
     <p style={{ fontSize: 13, color: "var(--text-hint)" }}>No messages yet — say hello!</p>
   </div>
@@ -38,10 +32,10 @@ const EmptyChat = () => (
 const ChatWindow = () => {
   const { messages, activeConversation, isLoadingMessages, isTypingInConv } = useChat();
   const { authUser } = useAuth();
-  const bottomRef    = useRef(null);
-  const isGroup      = activeConversation?.type === "group";
-  const isTyping     = isTypingInConv(activeConversation?._id);
-  const grouped      = groupMessagesByDate(messages);
+  const bottomRef = useRef(null);
+  const isGroup   = activeConversation?.type === "group";
+  const isTyping  = isTypingInConv(activeConversation?._id);
+  const grouped   = groupMessagesByDate(messages);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -55,9 +49,8 @@ const ChatWindow = () => {
     );
   }
 
-  if (!messages.length && !isLoadingMessages) return <EmptyChat />;
+  if (!messages.length) return <EmptyChat />;
 
-  // Mark showAvatar for consecutive same-sender messages
   const enriched = grouped.map((item, idx) => {
     if (item.type === "divider") return item;
     const next = grouped[idx + 1];
@@ -83,14 +76,16 @@ const ChatWindow = () => {
           <MessageBubble
             key={item._id}
             message={item}
-            isOwn={item.senderId === "me" || item.senderId === authUser?._id}
-            sender={getSender(item.senderId)}
+            isOwn={
+              item.senderId === "me" ||
+              (item.senderId?._id || item.senderId) === authUser?._id
+            }
+            sender={getSender(item.senderId?._id || item.senderId)}
             showAvatar={item.showAvatar}
             isGroup={isGroup}
           />
         )
       )}
-
       <TypingIndicator
         show={isTyping}
         userName={!isGroup ? activeConversation?.participant?.fullName?.split(" ")[0] : null}

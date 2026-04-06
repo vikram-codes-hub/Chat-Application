@@ -18,39 +18,17 @@ const AvatarUpload = ({ user, preview, onUpload }) => {
   return (
     <div style={{ position: "relative", display: "inline-block" }}>
       {preview
-        ? <img
-            src={preview}
-            alt="avatar"
-            style={{
-              width: 80, height: 80, borderRadius: "50%",
-              objectFit: "cover",
-              border: "3px solid var(--accent)",
-            }}
-          />
+        ? <img src={preview} alt="avatar" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "3px solid var(--accent)" }} />
         : <Avatar user={user} size="xl" />
       }
       <motion.button
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
         onClick={() => fileRef.current?.click()}
-        style={{
-          position: "absolute", bottom: 2, right: 2,
-          width: 26, height: 26, borderRadius: "50%",
-          background: "var(--accent)",
-          border: "2px solid var(--bg-base)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer",
-        }}
+        style={{ position: "absolute", bottom: 2, right: 2, width: 26, height: 26, borderRadius: "50%", background: "var(--accent)", border: "2px solid var(--bg-base)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
       >
         <Camera size={12} color="#fff" />
       </motion.button>
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        style={{ display: "none" }}
-        onChange={handleChange}
-      />
+      <input ref={fileRef} type="file" accept="image/*" style={{ display: "none" }} onChange={handleChange} />
     </div>
   );
 };

@@ -1,56 +1,67 @@
-import { createContext, useContext, useState, useCallback } from "react";
+import { createContext, useContext, useState, useCallback, useRef } from "react";
 import toast from "react-hot-toast";
 import { mockConversations, mockMessages } from "../data/mockData";
-import { getConversationsApi, getMessagesApi, sendMessageApi } from "../services/chat.service";
+import api from "../services/api";
 
 const ChatContext = createContext(null);
 
 export const ChatProvider = ({ children }) => {
-  const [conversations,        setConversations]        = useState([]);
-  const [activeConversation,   setActiveConversationRaw]= useState(null);
-  const [messages,             setMessages]             = useState([]);
-  const [isLoadingConvs,       setIsLoadingConvs]       = useState(false);
-  const [isLoadingMessages,    setIsLoadingMessages]    = useState(false);
-  const [typingMap,            setTypingMap]            = useState({});
+  const [conversations,      setConversations]      = useState([]);
+  const [activeConversation, setActiveConvRaw]      = useState(null);
+  const [messages,           setMessages]           = useState([]);
+  const [isLoadingConvs,     setIsLoadingConvs]     = useState(false);
+  const [isLoadingMessages,  setIsLoadingMessages]  = useState(false);
+  const [typingMap,          setTypingMap]          = useState({});
 
+  // Tracks delivered message IDs so duplicate socket events (e.g. room + direct
+  // emit) never increment unreadCount more than once per message.
+  const seenMsgIds = useRef(new Set());
+
+  // GET /api/conversations
   const fetchConversations = useCallback(async () => {
     setIsLoadingConvs(true);
     try {
-      const res = await getConversationsApi();
+      const res = await api.get("/conversations");
       setConversations(res.data);
     } catch {
-      setConversations(mockConversations); // fallback mock
+      setConversations(mockConversations);
     } finally {
       setIsLoadingConvs(false);
     }
   }, []);
 
+  // Set active conversation + GET /api/messages/:conversationId
   const setActiveConversation = useCallback(async (conv) => {
-    setActiveConversationRaw(conv);
+    setActiveConvRaw(conv);
     setMessages([]);
     if (!conv) return;
+
     setIsLoadingMessages(true);
     try {
-      const res = await getMessagesApi(conv._id);
+      const res = await api.get(`/messages/${conv._id}`);
       setMessages(res.data);
     } catch {
       setMessages(mockMessages[conv._id] || []);
     } finally {
       setIsLoadingMessages(false);
     }
-    // clear unread
+
+    // Clear unread for this conversation
     setConversations((prev) =>
       prev.map((c) => (c._id === conv._id ? { ...c, unreadCount: 0 } : c))
     );
   }, []);
 
+  // POST /api/messages/:conversationId
   const sendMessage = useCallback(async (text, image = null) => {
     if (!activeConversation) return;
+
     const tempId = `temp_${Date.now()}`;
     const tempMsg = {
       _id: tempId, senderId: "me", text, image,
       createdAt: new Date().toISOString(), status: "sending",
     };
+
     setMessages((prev) => [...prev, tempMsg]);
     setConversations((prev) =>
       prev.map((c) =>
@@ -59,23 +70,27 @@ export const ChatProvider = ({ children }) => {
           : c
       )
     );
+
     try {
-      const res = await sendMessageApi(activeConversation._id, { text, image });
+      const res = await api.post(`/messages/${activeConversation._id}`, { text, image });
       setMessages((prev) => prev.map((m) => (m._id === tempId ? res.data : m)));
     } catch {
       setMessages((prev) =>
         prev.map((m) => (m._id === tempId ? { ...m, status: "failed" } : m))
       );
-      toast.error("Failed to send");
+      toast.error("Failed to send message");
     }
   }, [activeConversation]);
 
-  // Socket: incoming message
+  // Socket: receive incoming message
   const receiveMessage = useCallback((msg) => {
-    setMessages((prev) => {
-      if (prev.some((m) => m._id === msg._id)) return prev;
-      return [...prev, msg];
-    });
+    // Bail out immediately if we've already processed this message ID.
+    // This prevents double-unread-count when the server sends the same
+    // message via both the room broadcast AND a direct socket emit.
+    if (seenMsgIds.current.has(msg._id)) return;
+    seenMsgIds.current.add(msg._id);
+
+    setMessages((prev) => [...prev, msg]);
     setConversations((prev) =>
       prev.map((c) =>
         c._id === msg.conversationId
@@ -85,6 +100,7 @@ export const ChatProvider = ({ children }) => {
     );
   }, []);
 
+  // Typing indicators
   const setTyping = useCallback((convId, userId, val) => {
     setTypingMap((prev) => ({ ...prev, [`${convId}_${userId}`]: val }));
   }, []);

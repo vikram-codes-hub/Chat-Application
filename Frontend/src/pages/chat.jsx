@@ -81,8 +81,14 @@ const NoChatSelected = () => (
 /* ── Chat page ── */
 const Chat = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { activeConversation, receiveMessage, setTyping } = useChat();
-  const { socket } = useSocket() || {};
+  const { activeConversation, receiveMessage, setTyping, fetchConversations } = useChat();
+  const { socket, joinConversation, leaveConversation } = useSocket() || {};
+
+  // Fetch conversations once when the Chat page mounts.
+  // We do this here — NOT inside Sidebar — because Sidebar can be mounted
+  // twice simultaneously (desktop div + mobile drawer), which would fire
+  // two parallel GET /api/conversations requests on every page load.
+  useEffect(() => { fetchConversations(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Wire up socket events
   useEffect(() => {
@@ -96,6 +102,13 @@ const Chat = () => {
       socket.off("stopTyping");
     };
   }, [socket, receiveMessage, setTyping]);
+
+  // Join/leave socket room so room-targeted broadcasts (typing, newMessage) work
+  useEffect(() => {
+    if (!activeConversation?._id) return;
+    joinConversation?.(activeConversation._id);
+    return () => leaveConversation?.(activeConversation._id);
+  }, [activeConversation?._id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg-base)" }}>

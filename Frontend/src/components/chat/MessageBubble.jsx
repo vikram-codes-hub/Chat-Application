@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Avatar from "../common/Avatar";
 import ReadReceipt from "./ReadReceipt";
-import { formatTime } from "../../utils/formatTime";
+import { formatTime } from "../../utils/helpers";
 
 const MessageBubble = ({ message, isOwn, sender, showAvatar = true, isGroup = false }) => (
   <motion.div
@@ -15,7 +15,7 @@ const MessageBubble = ({ message, isOwn, sender, showAvatar = true, isGroup = fa
       gap: 8,
     }}
   >
-    {/* Avatar slot — always reserve space so bubbles stay aligned */}
+    {/* Avatar slot */}
     <div style={{ width: 32, flexShrink: 0 }}>
       {!isOwn && isGroup && showAvatar && sender && (
         <Avatar user={sender} size="sm" />
@@ -25,25 +25,19 @@ const MessageBubble = ({ message, isOwn, sender, showAvatar = true, isGroup = fa
     <div style={{
       display: "flex", flexDirection: "column",
       alignItems: isOwn ? "flex-end" : "flex-start",
-      maxWidth: "68%",
-      gap: 2,
+      maxWidth: "68%", gap: 2,
     }}>
-      {/* Sender name in group chats */}
+      {/* Sender name in group */}
       {!isOwn && isGroup && showAvatar && sender && (
         <span style={{ fontSize: 11, color: sender.color || "var(--accent)", fontWeight: 600, paddingLeft: 4 }}>
           {sender.fullName}
         </span>
       )}
 
-      {/* Image attachment */}
+      {/* Image */}
       {message.image && (
-        <img
-          src={message.image}
-          alt="attachment"
-          style={{
-            maxWidth: 220, borderRadius: 12, objectFit: "cover",
-            border: "1px solid var(--border-subtle)",
-          }}
+        <img src={message.image} alt="attachment"
+          style={{ maxWidth: 220, borderRadius: 12, objectFit: "cover", border: "1px solid var(--border-subtle)" }}
         />
       )}
 
@@ -57,8 +51,7 @@ const MessageBubble = ({ message, isOwn, sender, showAvatar = true, isGroup = fa
           background: isOwn ? "var(--accent)" : "var(--bubble-in)",
           border: isOwn ? "none" : "1px solid var(--bubble-in-border)",
           color: isOwn ? "#fff" : "var(--text-primary)",
-          fontSize: 14, lineHeight: 1.55,
-          wordBreak: "break-word",
+          fontSize: 14, lineHeight: 1.55, wordBreak: "break-word",
         }}>
           {message.text}
         </div>
@@ -66,9 +59,7 @@ const MessageBubble = ({ message, isOwn, sender, showAvatar = true, isGroup = fa
 
       {/* Time + status */}
       <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 3px" }}>
-        <span style={{ fontSize: 10, color: "var(--text-hint)" }}>
-          {formatTime(message.createdAt)}
-        </span>
+        <span style={{ fontSize: 10, color: "var(--text-hint)" }}>{formatTime(message.createdAt)}</span>
         {isOwn && <ReadReceipt status={message.status} />}
       </div>
     </div>

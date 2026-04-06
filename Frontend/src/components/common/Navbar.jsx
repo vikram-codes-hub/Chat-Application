@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { LogOut, User } from "lucide-react";
 import { useAuth } from "../../hooks/useAuth";
 import Avatar from "./Avatar";
-import pulsechatLogo from "../../assets/pulsechat_logo.svg";
 
 const Navbar = () => {
   const { authUser, logout } = useAuth();
@@ -11,8 +10,7 @@ const Navbar = () => {
 
   return (
     <motion.nav
-      initial={{ y: -40, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
+      initial={{ y: -40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.3 }}
       style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -23,33 +21,29 @@ const Navbar = () => {
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <img src={pulsechatLogo} alt="PulseChat" style={{ height: 28 }} />
+        <div style={{ width: 30, height: 30, borderRadius: 9, background: "var(--accent)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="#fff">
+            <circle cx="8" cy="8" r="3"/>
+            <circle cx="8" cy="8" r="6.5" fill="none" stroke="#fff" strokeWidth="1.2"/>
+          </svg>
+        </div>
+        <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>PulseChat</span>
       </div>
 
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <motion.button
           whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
           onClick={() => navigate("/profile")}
-          style={{
-            display: "flex", alignItems: "center", gap: 8,
-            padding: "6px 12px", borderRadius: "var(--radius-md)",
-            background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)",
-            color: "var(--text-secondary)", fontSize: 13, cursor: "pointer",
-          }}
+          style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 12px", borderRadius: "var(--radius-md)", background: "var(--bg-elevated)", border: "1px solid var(--border-subtle)", color: "var(--text-secondary)", fontSize: 13, cursor: "pointer" }}
         >
           <Avatar user={authUser} size="xs" />
-          <span style={{ display: "none" }} className="sm-show">{authUser?.fullName?.split(" ")[0]}</span>
+          <span>{authUser?.fullName?.split(" ")[0]}</span>
         </motion.button>
 
         <motion.button
           whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
           onClick={logout}
-          style={{
-            width: 36, height: 36, borderRadius: "var(--radius-md)",
-            background: "transparent", border: "1px solid var(--border-subtle)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            color: "var(--text-muted)", cursor: "pointer",
-          }}
+          style={{ width: 36, height: 36, borderRadius: "var(--radius-md)", background: "transparent", border: "1px solid var(--border-subtle)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", cursor: "pointer" }}
         >
           <LogOut size={15} />
         </motion.button>

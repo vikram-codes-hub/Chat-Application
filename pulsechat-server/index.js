@@ -1,84 +1,63 @@
-require('dotenv').config();
-const express = require('express');
-const http = require('http');
-const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const { Server } = require('socket.io');
-const mongoose = require('mongoose');
+import express        from "express";
+import { createServer } from "http";
+import { Server }      from "socket.io";
+import cors            from "cors";
+import cookieParser    from "cookie-parser";
+import dotenv          from "dotenv";
 
-const app = express();
-const server = http.createServer(app);
+import connectDB       from "./config/db.js";
+import corsOptions     from "./config/corsOptions.js";
+import initSocket      from "./sockets/index.socket.js";
 
-// Setup Socket.IO
-const io = new Server(server, {
-    cors: {
-        origin: process.env.CLIENT_URL || 'http://localhost:5173',
-        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-        credentials: true
-    }
+import authRoutes         from "./routes/auth.routes.js";
+import userRoutes         from "./routes/user.routes.js";
+import messageRoutes      from "./routes/message.routes.js";
+import roomRoutes         from "./routes/room.routes.js";
+import conversationRoutes from "./routes/conversation.routes.js";
+
+import { errorHandler, notFound } from "./middleware/error.middleware.js";
+
+dotenv.config();
+
+const app    = express();
+const server = createServer(app);
+const io     = new Server(server, {
+  cors: corsOptions,
+  pingTimeout: 60000,
 });
 
-// Middleware
-app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    credentials: true,
-}));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// ── Connect DB ──
+connectDB();
+
+// ── Make io accessible in controllers via req.app.locals.io ──
+app.locals.io = io;
+
+// ── Global middleware ──
+app.use(cors(corsOptions));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
 
-// Static folder if you use multiple uploads
-app.use('/uploads', express.static('uploads'));
-
-// Test Route
-app.get('/', (req, res) => {
-    res.json({ message: 'PulseChat API is running...' });
+// ── Health check ──
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok", app: "PulseChat", timestamp: new Date().toISOString() });
 });
 
-/* 
-// Note: Uncomment these when your route files are implemented securely
-// Example Route Imports
-const authRoutes = require('./routes/auth.routes');
-const messageRoutes = require('./routes/message.routes');
-const roomRoutes = require('./routes/room.routes');
-const userRoutes = require('./routes/user.routes');
+// ── Routes ──
+app.use("/api/auth",          authRoutes);
+app.use("/api/users",         userRoutes);
+app.use("/api/messages",      messageRoutes);
+app.use("/api/rooms",         roomRoutes);
+app.use("/api/conversations",  conversationRoutes);
 
-app.use('/api/auth', authRoutes);
-app.use('/api/messages', messageRoutes);
-app.use('/api/rooms', roomRoutes);
-app.use('/api/users', userRoutes);
-*/
+// ── Socket.io ──
+initSocket(io);
 
-// Socket.io Events Setup
-io.on('connection', (socket) => {
-    console.log(`Socket connected: ${socket.id}`);
-
-    // Example socket setup
-    // require('./sockets/index.socket')(io, socket);
-
-    socket.on('disconnect', () => {
-        console.log(`Socket disconnected: ${socket.id}`);
-    });
-});
+// ── Error handling (must be last) ──
+app.use(notFound);
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
-
-const startServer = async () => {
-    try {
-        if (!process.env.MONGO_URI) {
-            console.error('Warning: MONGO_URI is not set in .env');
-        } else {
-            const conn = await mongoose.connect(process.env.MONGO_URI);
-            console.log(`Database is successfully connected`);
-        }
-
-        server.listen(PORT, () => {
-            console.log(`Server is running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
-        });
-    } catch (error) {
-        console.error('Error starting server:', error);
-        process.exit(1);
-    }
-};
-
-startServer();
+server.listen(PORT, () => {
+  console.log(`🚀 PulseChat server running on port ${PORT}`);
+});

@@ -52,7 +52,7 @@ export const groupMessagesByDate = (messages = []) => {
 
 export const getConvName = (conv = {}) => {
   if (conv.type === "direct" && conv.participant) {
-    return conv.participant.name || "Unknown User";
+    return conv.participant.fullName || conv.participant.username || "Unknown User";
   }
   return conv.name || "Conversation";
 };

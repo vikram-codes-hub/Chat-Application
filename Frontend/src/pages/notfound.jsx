@@ -4,14 +4,9 @@ import { useNavigate } from "react-router-dom";
 const NotFound = () => {
   const navigate = useNavigate();
   return (
-    <div style={{
-      minHeight: "100vh", display: "flex", flexDirection: "column",
-      alignItems: "center", justifyContent: "center",
-      background: "var(--bg-base)", gap: 18,
-    }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--bg-base)", gap: 18 }}>
       <motion.div
-        initial={{ scale: 0.7, opacity: 0 }}
-        animate={{ scale: 1, opacity: 0.12 }}
+        initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 0.12 }}
         transition={{ duration: 0.4, type: "spring" }}
         style={{ width: 80, height: 80, borderRadius: 24, background: "var(--accent)" }}
       />
@@ -24,11 +19,7 @@ const NotFound = () => {
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25 }}
         whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
         onClick={() => navigate("/")}
-        style={{
-          padding: "10px 28px", background: "var(--accent)", border: "none",
-          borderRadius: "var(--radius-md)", color: "#fff",
-          fontSize: 14, fontWeight: 600, cursor: "pointer",
-        }}
+        style={{ padding: "10px 28px", background: "var(--accent)", border: "none", borderRadius: "var(--radius-md)", color: "#fff", fontSize: 14, fontWeight: 600, cursor: "pointer" }}
       >
         Back to PulseChat
       </motion.button>
