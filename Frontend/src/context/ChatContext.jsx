@@ -22,7 +22,7 @@ export const ChatProvider = ({ children }) => {
     setIsLoadingConvs(true);
     try {
       const res = await api.get("/conversations");
-      setConversations(res.data);
+      setConversations(res.data.data ?? []);
     } catch {
       setConversations(mockConversations);
     } finally {
@@ -39,7 +39,7 @@ export const ChatProvider = ({ children }) => {
     setIsLoadingMessages(true);
     try {
       const res = await api.get(`/messages/${conv._id}`);
-      setMessages(res.data);
+      setMessages(res.data.data ?? []);
     } catch {
       setMessages(mockMessages[conv._id] || []);
     } finally {
