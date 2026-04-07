@@ -18,6 +18,7 @@ import conversationRoutes from "./routes/conversation.routes.js";
 import { errorHandler, notFound } from "./middleware/error.middleware.js";
 
 dotenv.config();
+console.log("MONGO_URI =", process.env.MONGO_URI)
 
 const app    = express();
 const server = createServer(app);
