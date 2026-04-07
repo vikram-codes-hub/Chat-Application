@@ -20,8 +20,8 @@ const Sidebar = ({ onClose }) => {
   const { authUser, logout } = useAuth();
   const { conversations, activeConversation, setActiveConversation, fetchConversations } = useChat();
 
-  const directs = conversations.filter((c) => c.type === "direct");
-  const groups  = conversations.filter((c) => c.type === "group");
+  const directs = (conversations ?? []).filter((c) => c.type === "direct");
+const groups  = (conversations ?? []).filter((c) => c.type === "group");
 
   const filtered = (list) =>
     list.filter((c) => {
