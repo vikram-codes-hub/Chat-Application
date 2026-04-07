@@ -45,7 +45,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("PulseChat Backend is running");
+ res.json({ status: "ok", app: "PulseChat",message:"PulseChat Backend is running", timestamp: new Date().toISOString() });
 });
 // ── Routes ──
 app.use("/api/auth",          authRoutes);
