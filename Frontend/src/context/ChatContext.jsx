@@ -85,15 +85,12 @@ export const ChatProvider = ({ children }) => {
 
   // Socket: receive incoming message
   const receiveMessage = useCallback((msg) => {
-    // Guard 1: seenMsgIds ref — blocks duplicates from double socket emits
-    // (room broadcast + direct emit) and messages the sender already received
-    // via HTTP response.
+   
     if (seenMsgIds.current.has(msg._id)) return;
     seenMsgIds.current.add(msg._id);
 
     setMessages((prev) => {
-      // Guard 2: if the _id already exists in the list (race: socket beat HTTP
-      // response, REST code replaced tempMsg first), silently skip.
+     
       if (prev.some((m) => m._id === msg._id)) return prev;
       return [...prev, msg];
     });
