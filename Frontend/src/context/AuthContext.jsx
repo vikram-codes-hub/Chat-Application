@@ -11,12 +11,14 @@ export const AuthProvider = ({ children }) => {
   const [isLoading,         setIsLoading]         = useState(false);
   const [isUpdatingProfile, setIsUpdatingProfile] = useState(false);
 
-  // GET /api/auth/me
   const checkAuth = useCallback(async () => {
+    const token = localStorage.getItem("pulsechat_token");
+    if (!token) { setIsCheckingAuth(false); return; }
     try {
       const res = await api.get("/auth/me");
       setAuthUser(res.data);
     } catch {
+      localStorage.removeItem("pulsechat_token");
       setAuthUser(null);
     } finally {
       setIsCheckingAuth(false);
@@ -25,11 +27,11 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => { checkAuth(); }, [checkAuth]);
 
-  // POST /api/auth/login
   const login = async (data) => {
     setIsLoading(true);
     try {
       const res = await api.post("/auth/login", data);
+      localStorage.setItem("pulsechat_token", res.data.token);
       setAuthUser(res.data);
       toast.success("Welcome back!");
     } catch (err) {
@@ -39,11 +41,11 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // POST /api/auth/register
   const register = async (data) => {
     setIsLoading(true);
     try {
       const res = await api.post("/auth/register", data);
+      localStorage.setItem("pulsechat_token", res.data.token);
       setAuthUser(res.data);
       toast.success("Account created!");
     } catch (err) {
@@ -53,16 +55,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // POST /api/auth/logout
   const logout = async () => {
-    try {
-      await api.post("/auth/logout");
-    } catch {}
+    try { await api.post("/auth/logout"); } catch {}
+    localStorage.removeItem("pulsechat_token");
     setAuthUser(null);
     toast.success("Logged out");
   };
 
-  // PUT /api/users/profile
   const updateProfile = async (data) => {
     setIsUpdatingProfile(true);
     try {
@@ -76,7 +75,6 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // DEV: skip backend
   const useMockAuth = () => {
     setAuthUser(mockAuthUser);
     setIsCheckingAuth(false);
