@@ -18,7 +18,7 @@ import conversationRoutes from "./routes/conversation.routes.js";
 import { errorHandler, notFound } from "./middleware/error.middleware.js";
 
 dotenv.config();
-console.log("MONGO_URI =", process.env.MONGO_URI)
+
 
 const app    = express();
 const server = createServer(app);
@@ -44,6 +44,9 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", app: "PulseChat", timestamp: new Date().toISOString() });
 });
 
+app.get("/", (req, res) => {
+  res.send("PulseChat Backend is running");
+});
 // ── Routes ──
 app.use("/api/auth",          authRoutes);
 app.use("/api/users",         userRoutes);
