@@ -78,19 +78,16 @@ const NoChatSelected = () => (
   </div>
 );
 
-/* ── Chat page ── */
+ 
 const Chat = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const { activeConversation, receiveMessage, setTyping, fetchConversations } = useChat();
+  const { activeConversation,conversations, receiveMessage, setTyping, fetchConversations } = useChat();
   const { socket, joinConversation, leaveConversation } = useSocket() || {};
+   const freshConversation = conversations.find(c => c._id === activeConversation?._id) || activeConversation;
 
-  // Fetch conversations once when the Chat page mounts.
-  // We do this here — NOT inside Sidebar — because Sidebar can be mounted
-  // twice simultaneously (desktop div + mobile drawer), which would fire
-  // two parallel GET /api/conversations requests on every page load.
-  useEffect(() => { fetchConversations(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Wire up socket events — use named refs so socket.off only removes THIS effect's handlers
+  useEffect(() => { fetchConversations(); }, []); 
+
   useEffect(() => {
     if (!socket) return;
     const onNewMessage  = (msg)                          => receiveMessage(msg);
@@ -106,14 +103,12 @@ const Chat = () => {
     };
   }, [socket, receiveMessage, setTyping]);
 
-  // Join/leave socket room so room-targeted broadcasts (typing, newMessage) work.
-  // Also depends on `socket`: if socket connects AFTER a conversation is already selected
-  // (race on first load), we re-emit joinConversation so the room membership is established.
+ 
   useEffect(() => {
     if (!activeConversation?._id || !socket) return;
     joinConversation?.(activeConversation._id);
     return () => leaveConversation?.(activeConversation._id);
-  }, [activeConversation?._id, socket]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeConversation?._id, socket]); 
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "var(--bg-base)" }}>
@@ -179,7 +174,7 @@ const Chat = () => {
           </motion.button>
           {activeConversation && (
             <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
-              {getConvName(activeConversation)}
+              {getConvName(freshConversation)}
             </span>
           )}
         </div>
@@ -187,10 +182,10 @@ const Chat = () => {
         {activeConversation ? (
           <>
             <div className="desktop-chat-header">
-              <ChatAreaHeader conversation={activeConversation} />
+              <ChatAreaHeader conversation={freshConversation} />
             </div>
             <ChatWindow />
-            <MessageInput conversationId={activeConversation._id} />
+            <MessageInput conversationId={freshConversation._id} />
           </>
         ) : (
           <NoChatSelected />

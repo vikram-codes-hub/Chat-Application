@@ -21,15 +21,37 @@ const MessageInput = ({ conversationId }) => {
     typingTimeout.current = setTimeout(() => emitStopTyping?.(conversationId), 1500);
   };
 
-  const handleImage = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => setImagePreview(reader.result);
-    reader.readAsDataURL(file);
+ const handleImage = (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    alert("Image must be under 2MB");
     e.target.value = "";
+    return;
+  }
+
+  const canvas = document.createElement("canvas");
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+
+  img.onload = () => {
+    const MAX = 600;
+    let { width, height } = img;
+    if (width > MAX || height > MAX) {
+      if (width > height) { height = (height / width) * MAX; width = MAX; }
+      else { width = (width / height) * MAX; height = MAX; }
+    }
+    canvas.width = width;
+    canvas.height = height;
+    canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+    setImagePreview(canvas.toDataURL("image/jpeg", 0.5));
+    URL.revokeObjectURL(url);
   };
 
+  img.src = url;
+  e.target.value = "";
+};
   const handleSend = useCallback(async () => {
     if (!text.trim() && !imagePreview) return;
     setIsSending(true);
