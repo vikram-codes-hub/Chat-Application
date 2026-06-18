@@ -16,7 +16,7 @@
 
 <br />
 
-> 🚧 **Live Demo:** [pulsechat.app](https://pulsechat.app) — **Coming Soon**
+> 🚧 **Live Demo:** [pulsechat.app](https://pulsechat-frontend-blush.vercel.app) 
 
 <br />
 
